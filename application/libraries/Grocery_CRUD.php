@@ -2095,8 +2095,9 @@ class grocery_CRUD_Layout extends grocery_CRUD_Model_Driver
 
 	protected function load_js_chosen()
 	{
-		$this->set_css($this->default_css_path.'/jquery_plugins/chosen/chosen.css');
-		$this->set_js_lib($this->default_javascript_path.'/jquery_plugins/jquery.chosen.min.js');
+		$this->set_css($this->default_css_path.'/jquery_plugins/chosen/chosen.min.css');
+		$this->set_js_lib($this->default_javascript_path.'/jquery_plugins/chosen.jquery.min.js');
+		$this->set_js_lib($this->default_javascript_path.'/jquery_plugins/chosen.proto.min.js');
 	}
 
 	protected function load_js_jqueryui()
