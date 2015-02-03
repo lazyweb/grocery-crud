@@ -1261,13 +1261,14 @@ class grocery_CRUD_Model_Driver extends grocery_CRUD_Field_Types
 			}
 		}
 
-		if( empty($field_info->on_clause) || $field_info->last_relation )
-		{
-			$this->basic_model->db_relation_n_n_update($field_info, $post_data , $primary_key_value);
+		if( !$field_info->last_relation )
+			return;
 
-			if( !empty($field_info->on_clause) && $field_info->last_relation )
-				$this->basic_model->db->insert_batch($field_info->relation_table, $this->relation_update[$field_info->relation_table]);
-		}
+		if( empty($field_info->on_clause) )
+			return $this->basic_model->db_relation_n_n_update($field_info, $post_data , $primary_key_value);
+
+		$this->basic_model->db->delete($field_info->relation_table, array($field_info->primary_key_alias_to_this_table => $primary_key_value));
+		$this->basic_model->db->insert_batch($field_info->relation_table, $this->relation_update[$field_info->relation_table]);
 	}
 
 	protected function db_relation_n_n_delete($field_info, $primary_key_value)
