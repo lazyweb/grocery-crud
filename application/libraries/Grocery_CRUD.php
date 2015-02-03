@@ -1246,7 +1246,28 @@ class grocery_CRUD_Model_Driver extends grocery_CRUD_Field_Types
 
 	protected function db_relation_n_n_update($field_info, $post_data , $primary_key_value)
 	{
-		$this->basic_model->db_relation_n_n_update($field_info, $post_data , $primary_key_value);
+		if( !empty($field_info->on_clause) )
+		{
+			if( !isset($this->relation_update[$field_info->relation_table]) )
+				$this->relation_update[$field_info->relation_table] = array();
+
+			foreach($post_data as $relation_key_value)
+			{
+				$this->relation_update[$field_info->relation_table][] = array_merge($field_info->on_clause, array(
+	  			$field_info->primary_key_alias_to_this_table => $primary_key_value,
+	  			$field_info->primary_key_alias_to_selection_table => $relation_key_value,
+	  			$field_info->priority_field_relation_table => count($this->relation_update[$field_info->relation_table]) * 10
+				));
+			}
+		}
+
+		if( empty($field_info->on_clause) || $field_info->last_relation )
+		{
+			$this->basic_model->db_relation_n_n_update($field_info, $post_data , $primary_key_value);
+
+			if( !empty($field_info->on_clause) && $field_info->last_relation )
+				$this->basic_model->db->insert_batch($field_info->relation_table, $this->relation_update[$field_info->relation_table]);
+		}
 	}
 
 	protected function db_relation_n_n_delete($field_info, $primary_key_value)
@@ -5116,6 +5137,7 @@ class Grocery_CRUD extends grocery_CRUD_States
 	 * @param string $title_field_selection_table
 	 * @param string $priority_field_relation_table
 	 * @param mixed $where_clause
+	 * @param mixed $on_clause
      * @return Grocery_CRUD
 	 */
 	public function set_relation_n_n($field_name, $relation_table, $selection_table, $primary_key_alias_to_this_table, $primary_key_alias_to_selection_table , $title_field_selection_table , $priority_field_relation_table = null, $where_clause = null)
@@ -5129,8 +5151,16 @@ class Grocery_CRUD extends grocery_CRUD_States
 				'primary_key_alias_to_selection_table' => $primary_key_alias_to_selection_table ,
 				'title_field_selection_table' => $title_field_selection_table ,
 				'priority_field_relation_table' => $priority_field_relation_table,
-				'where_clause' => $where_clause
+				'where_clause' => $where_clause,
+				'on_clause' => $on_clause,
+				'last_relation' => true
 			);
+
+		foreach($this->relation_n_n as $field_info)
+		{
+			if( $field_info->field_name != $field_name && $field_info->relation_table == $relation_table )
+				$this->relation_n_n[$field_info->field_name]->last_relation = false;
+		}
 
 		return $this;
 	}

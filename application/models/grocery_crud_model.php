@@ -331,7 +331,9 @@ class grocery_CRUD_Model  extends CI_Model  {
     	$this->db->join(
     			$field_info->selection_table,
     			"{$field_info->relation_table}.{$field_info->primary_key_alias_to_selection_table} = {$field_info->selection_table}.{$selection_primary_key}"
-    		);
+    		);    	
+			if( !empty($field_info->on_clause) && is_array($field_info->on_clause) )
+				$this->db->where($field_info->on_clause);
     	$results = $this->db->get($field_info->relation_table)->result();
 
     	$results_array = array();
